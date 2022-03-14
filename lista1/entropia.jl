@@ -1,0 +1,68 @@
+
+file = open(ARGS[1], "r")
+
+# using dicts here is suboptimal 
+function occurrences(file::IO)::Tuple{Dict{UInt8, Int64},Dict{Tuple{UInt8, UInt8}, Int64}, Int64}
+    num_occurrences = Dict{UInt8, Int64}()
+    num_occurrences_conditional = Dict{Tuple{UInt8, UInt8}, Int64}()
+    local previous_byte::UInt8
+
+    first_byte = read(file, UInt8)
+    num_occurrences[first_byte] = 1
+    num_occurrences_conditional[(0, first_byte)] = 1
+    previous_byte = first_byte
+    all_occurrences::Int64 = 1
+
+
+    for byte in readeach(file, UInt8)
+        if(haskey(num_occurrences, byte))
+            num_occurrences[byte] += 1
+            if(haskey(num_occurrences_conditional, (previous_byte, byte)))
+                num_occurrences_conditional[(previous_byte, byte)] += 1
+            else
+                num_occurrences_conditional[(previous_byte, byte)] = 1
+            end
+        else
+            num_occurrences[byte] = 1;
+        end
+        previous_byte = byte
+        all_occurrences += 1
+    end
+
+    return (num_occurrences, num_occurrences_conditional, all_occurrences)
+end
+
+function entropy(num_occurrences::Dict{UInt8, Int64}, all_occurrences::Int64)::Float64
+    local entropy::Float64 = 0
+    for (key, value) in num_occurrences
+        probability::Float64 = value / all_occurrences
+        entropy -=  probability * log2(probability)
+    end
+    return entropy
+end
+
+function conditional_entropy(num_occurrences::Dict{UInt8, Int64}, num_occurrences_conditional::Dict{Tuple{UInt8, UInt8}, Int64}, all_occurrences::Int64)::Float64
+    entropy_conditional = Dict{UInt8, Float64}()
+    for ((x, y), num) in num_occurrences_conditional
+        probability::Float64 = num / num_occurrences[y]
+        if (haskey(entropy_conditional, x))
+            entropy_conditional[x] -= probability * log2(probability)
+        else
+            entropy_conditional[x] = -probability * log2(probability)
+        end
+    end
+    entropy::Float64 = 0
+    for (key, value) in num_occurrences
+        x_probability::Float64 = value / all_occurrences
+        entropy += x_probability * entropy_conditional[key]
+    end
+    return entropy
+end
+
+(num_occurrences, num_occurrences_conditional, all_occurrences) = occurrences(file)
+
+# println(num_occurrences)
+# println(all_occurrences)
+# println(num_occurrences_conditional)
+println("entropia: ", entropy(num_occurrences, all_occurrences))
+println("entropia warunkowa: ", conditional_entropy(num_occurrences, num_occurrences_conditional, all_occurrences))
