@@ -42,9 +42,13 @@ function entropy(num_occurrences::Dict{UInt8, Int64}, all_occurrences::Int64)::F
 end
 
 function conditional_entropy(num_occurrences::Dict{UInt8, Int64}, num_occurrences_conditional::Dict{Tuple{UInt8, UInt8}, Int64}, all_occurrences::Int64)::Float64
-    entropy_conditional = Dict{UInt8, Float64}()
+    if(!haskey(num_occurrences, 0))
+        num_occurrences[0] = 1
+        all_occurrences += 1
+    end
+    entropy_conditional = Dict{UInt8, Float64}() # H(Y|x)
     for ((x, y), num) in num_occurrences_conditional
-        probability::Float64 = num / num_occurrences[y]
+        probability::Float64 = num / num_occurrences[x] # P(y|x)
         if (haskey(entropy_conditional, x))
             entropy_conditional[x] -= probability * log2(probability)
         else
@@ -53,7 +57,7 @@ function conditional_entropy(num_occurrences::Dict{UInt8, Int64}, num_occurrence
     end
     entropy::Float64 = 0
     for (key, value) in num_occurrences
-        x_probability::Float64 = value / all_occurrences
+        x_probability::Float64 = value / all_occurrences # P(x)
         entropy += x_probability * entropy_conditional[key]
     end
     return entropy
@@ -61,8 +65,10 @@ end
 
 (num_occurrences, num_occurrences_conditional, all_occurrences) = occurrences(file)
 
+ent = entropy(num_occurrences, all_occurrences)
+cond_ent = conditional_entropy(num_occurrences, num_occurrences_conditional, all_occurrences)
+var = ent - cond_ent
 # println(num_occurrences)
-# println(all_occurrences)
-# println(num_occurrences_conditional)
-println("entropia: ", entropy(num_occurrences, all_occurrences))
-println("entropia warunkowa: ", conditional_entropy(num_occurrences, num_occurrences_conditional, all_occurrences))
+println("entropia: ", ent)
+println("entropia warunkowa: ", cond_ent)
+println("różnica: ", var)
