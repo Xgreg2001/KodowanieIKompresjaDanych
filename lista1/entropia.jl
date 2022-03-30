@@ -1,4 +1,3 @@
-
 file = open(ARGS[1], "r")
 
 # using dicts here is suboptimal 
@@ -69,7 +68,7 @@ ent = entropy(num_occurrences, all_occurrences)
 cond_ent = conditional_entropy(num_occurrences, num_occurrences_conditional, all_occurrences)
 var = ent - cond_ent
 # println(num_occurrences)
-println("entropia: ", ent)
-println("entropia warunkowa: ", cond_ent)
-println("różnica: ", var)
+println(ent)
+println(cond_ent)
+# println("różnica: ", var)
 close(file)

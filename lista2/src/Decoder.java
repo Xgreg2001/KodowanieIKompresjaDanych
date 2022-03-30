@@ -1,23 +1,19 @@
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.ByteBuffer;
+import java.io.*;
 
 public class Decoder {
 
     private static long totalCount;
     private static long l = 0;
     private static long u = 0xffffffffL;
-    private static long[] cumCount = new long[257];
+    private static final long[] cumCount = new long[257];
     private static long[] dict;
-    private static int writeBuffer = 0;
-    private static int bytesInWriteBuffer = 0;
     private static int readBuffer = 0;
     private static int bitsInReadBuffer = 0;
     private static long t;
-    private static long prevL;
     private static long numberOfBytes;
+    private static BufferedOutputStream outStream;
+    private static BufferedInputStream stream;
+    private static boolean finished = false;
 
     private static void initializeDictionaries() {
         dict = new long[265];
@@ -56,73 +52,64 @@ public class Decoder {
     public static void main(String[] args) {
         initializeDictionaries();
 
-        String filename = args[0];
-        File initialFile = new File(filename);
+        File initialFile = new File(args[0]);
+        File destinationFile = new File(args[1]);
         try {
-            DataInputStream stream = new DataInputStream(new FileInputStream(initialFile));
-            numberOfBytes = stream.readLong();
-            t = Integer.toUnsignedLong(stream.readInt());
+            DataInputStream tempStream = new DataInputStream(new FileInputStream(initialFile));
+            numberOfBytes = tempStream.readLong();
+            t = Integer.toUnsignedLong(tempStream.readInt());
+            stream = new BufferedInputStream(tempStream);
+            outStream = new BufferedOutputStream(new PrintStream(destinationFile));
             while (numberOfBytes > 0) {
-                decode(stream);
+                decode();
             }
+            outStream.flush();
 
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private static void decode(DataInputStream stream) throws IOException {
+    private static void decode() throws IOException {
         int k = 0;
         long temp = ((t - l + 1) * totalCount - 1) / (u - l + 1);
         while (temp >= cumCount[k + 1]) {
             k++;
         }
         send(k);
-        updateBounds(k, stream);
+        updateBounds(k);
         updateDict(k);
     }
 
-    private static void updateBounds(int x, DataInputStream stream) throws IOException {
+    private static void updateBounds(int x) throws IOException {
         x = x & 0xff;
-        prevL = l;
+        long prevL = l;
         l = l + ((u - l + 1) * cumCount[x] / totalCount);
         u = prevL + ((u - prevL + 1) * cumCount[x + 1] / totalCount) - 1;
 
-        //can be optimised
-        long lMsb = (l & 0xffffffffL) >>> 31;
-        long uMsb = (u & 0xffffffffL) >>> 31;
-        long lSmsb = (l & 0x7fffffffL) >>> 30;
-        long uSmsb = (u & 0x7fffffffL) >>> 30;
 
-        while (lMsb == uMsb || (lSmsb == 1 && uSmsb == 0)) {
-            if (lMsb == uMsb) {
+        while ((l & 0x80000000L) == (u & 0x80000000L) || ((l & 0x40000000L) == 0x40000000L) && ((u & 0x40000000L) == 0)) {
+            if ((l & 0x80000000L) == (u & 0x80000000L)) {
                 l = l << 1 & 0xffffffffL;
                 u = u << 1 & 0xffffffffL | 0x1L;
-                updateTag(stream);
-
-                lMsb = (l & 0xffffffffL) >>> 31;
-                uMsb = (u & 0xffffffffL) >>> 31;
-                lSmsb = (l & 0x7fffffffL) >>> 30;
-                uSmsb = (u & 0x7fffffffL) >>> 30;
+                updateTag();
             }
-            if (lSmsb == 1 && uSmsb == 0) {
+            if ((l & 0x40000000L) == 0x40000000L && (u & 0x40000000L) == 0) {
                 l = l << 1 & 0xffffffffL ^ 0x80000000L;
                 u = u << 1 & 0xffffffffL | 0x1L ^ 0x80000000L;
-                updateTag(stream);
+                updateTag();
 
                 t = t ^ 0x80000000L;
-
-                lMsb = (l & 0xffffffffL) >>> 31;
-                uMsb = (u & 0xffffffffL) >>> 31;
-                lSmsb = (l & 0x7fffffffL) >>> 30;
-                uSmsb = (u & 0x7fffffffL) >>> 30;
             }
         }
     }
 
-    private static void updateTag(DataInputStream stream) throws IOException {
+    private static void updateTag() throws IOException {
         if (bitsInReadBuffer == 0) {
-            readBuffer = stream.readByte() & 0xff;
+            readBuffer = stream.read();
+            if (readBuffer == -1) {
+                finished = true;
+            }
             bitsInReadBuffer = 8;
         }
         t = ((t << 1) & 0xffffffffL) | ((readBuffer >>> 7) & 0x1);
@@ -130,15 +117,8 @@ public class Decoder {
         bitsInReadBuffer--;
     }
 
-    private static byte[] intToBytes(int x) {
-        ByteBuffer buffer = ByteBuffer.allocate(Integer.BYTES);
-        buffer.putInt(x);
-        return buffer.array();
-    }
-
     private static void send(int k) throws IOException {
         numberOfBytes--;
-        System.out.write(k);
-        System.out.flush();
+        outStream.write(k);
     }
 }
