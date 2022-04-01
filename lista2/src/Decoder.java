@@ -5,62 +5,27 @@ public class Decoder {
     private static long totalCount;
     private static long l = 0;
     private static long u = 0xffffffffL;
-    private static final long[] cumCount = new long[257];
-    private static long[] dict;
+    private static final long[] cumCount = new long[258];
+    private static final long[] dict = new long[257];
     private static int readBuffer = 0;
     private static int bitsInReadBuffer = 0;
     private static long t;
-    private static long numberOfBytes;
     private static BufferedOutputStream outStream;
     private static BufferedInputStream stream;
     private static boolean finished = false;
 
-    private static void initializeDictionaries() {
-        dict = new long[265];
-        for (int b = 0; b < 256; b++) {
-            dict[b] = 1;
-        }
-        totalCount = 256;
-        for (int i = 0; i < 257; i++) {
-            cumCount[i] = i;
-        }
-    }
-
-    private static void updateDict(int b) {
-        dict[b & 0xff]++;
-        totalCount++;
-        // reskalujemy jeśli suma w słowniku równa niż 2^30 - 1
-        if (totalCount == 1073741823) {
-            for (int i = 0; i < 256; i++) {
-                long temp = dict[i];
-                dict[i] = (long) (Math.ceil((double) dict[i] / 2.0));
-                totalCount -= temp - dict[i];
-            }
-            //recalculate cumCount
-            cumCount[0] = 0;
-            for (int i = 1; i < 257; i++) {
-                cumCount[i] = cumCount[i - 1] + dict[i - 1];
-            }
-        } else {
-            //hope it is unsigned
-            for (int i = b & 0xff; i < 256; i++) {
-                cumCount[i + 1]++;
-            }
-        }
-    }
 
     public static void main(String[] args) {
-        initializeDictionaries();
+        totalCount = Commons.initializeDictionaries(dict, cumCount);
 
         File initialFile = new File(args[0]);
         File destinationFile = new File(args[1]);
         try {
             DataInputStream tempStream = new DataInputStream(new FileInputStream(initialFile));
-            numberOfBytes = tempStream.readLong();
             t = Integer.toUnsignedLong(tempStream.readInt());
             stream = new BufferedInputStream(tempStream);
             outStream = new BufferedOutputStream(new PrintStream(destinationFile));
-            while (numberOfBytes > 0) {
+            while (!finished) {
                 decode();
             }
             outStream.flush();
@@ -76,9 +41,13 @@ public class Decoder {
         while (temp >= cumCount[k + 1]) {
             k++;
         }
+        if (k == 256) {
+            finished = true;
+            return;
+        }
         send(k);
         updateBounds(k);
-        updateDict(k);
+        totalCount = Commons.updateDict(k, totalCount, dict, cumCount);
     }
 
     private static void updateBounds(int x) throws IOException {
@@ -118,7 +87,6 @@ public class Decoder {
     }
 
     private static void send(int k) throws IOException {
-        numberOfBytes--;
         outStream.write(k);
     }
 }
