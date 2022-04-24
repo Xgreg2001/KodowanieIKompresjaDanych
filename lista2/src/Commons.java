@@ -2,11 +2,12 @@ public class Commons {
 
     private static final int SYMBOLS = 257;
     private static final int SCALING_THRESHOLD = 1073741823;
+//    private static final int SCALING_THRESHOLD = (int) Math.pow(2, 11) - 1;
 
     public static long updateDict(int b, long totalCount, long[] dict, long[] cumCount) {
         dict[b]++;
         totalCount++;
-        // reskalujemy jeśli suma w słowniku równa niż 2^30 - 1
+        // reskalujemy jeśli suma w słowniku mniejsza niz limit
         if (totalCount == SCALING_THRESHOLD) {
             for (int i = 0; i < SYMBOLS; i++) {
                 long temp = dict[i];
@@ -19,7 +20,6 @@ public class Commons {
                 cumCount[i] = cumCount[i - 1] + dict[i - 1];
             }
         } else {
-            //hope it is unsigned
             for (int i = b & 0xff; i < SYMBOLS; i++) {
                 cumCount[i + 1]++;
             }
