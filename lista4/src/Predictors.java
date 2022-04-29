@@ -20,12 +20,11 @@ public class Predictors {
         byte[] wBytes = ByteBuffer.allocate(4).putInt(w).array();
         byte[] nwBytes = ByteBuffer.allocate(4).putInt(nw).array();
 
-        byte r = (byte) (nBytes[1] + wBytes[1] - nwBytes[1]);
-        byte g = (byte) (nBytes[2] + wBytes[2] - nwBytes[2]);
-        byte b = (byte) (nBytes[3] + wBytes[3] - nwBytes[3]);
+        int r = ((int) nBytes[1] & 0xff) + ((int) wBytes[1] & 0xff) - ((int) nwBytes[1] & 0xff);
+        int g = ((int) nBytes[2] & 0xff) + ((int) wBytes[2] & 0xff) - ((int) nwBytes[2] & 0xff);
+        int b = ((int) nBytes[3] & 0xff) + ((int) wBytes[3] & 0xff) - ((int) nwBytes[3] & 0xff);
 
-
-        return 0xff << 24 | r << 16 | g << 8 | b;
+        return 0xff << 24 | (r & 0xff) << 16 | (g & 0xff) << 8 | (b & 0xff);
     }
 
     public static int jpegLS5(int n, int w, int nw) {
@@ -34,11 +33,11 @@ public class Predictors {
         byte[] wBytes = ByteBuffer.allocate(4).putInt(w).array();
         byte[] nwBytes = ByteBuffer.allocate(4).putInt(nw).array();
 
-        byte r = (byte) (nBytes[1] + (wBytes[1] - nwBytes[1]) / 2);
-        byte g = (byte) (nBytes[2] + (wBytes[2] - nwBytes[2]) / 2);
-        byte b = (byte) (nBytes[3] + (wBytes[3] - nwBytes[3]) / 2);
+        int r = ((int) nBytes[1] & 0xff) + (((int) wBytes[1] & 0xff) - ((int) nwBytes[1] & 0xff)) / 2;
+        int g = ((int) nBytes[2] & 0xff) + (((int) wBytes[2] & 0xff) - ((int) nwBytes[2] & 0xff)) / 2;
+        int b = ((int) nBytes[3] & 0xff) + (((int) wBytes[3] & 0xff) - ((int) nwBytes[3] & 0xff)) / 2;
 
-        return 0xff << 24 | r << 16 | g << 8 | b;
+        return 0xff << 24 | (r & 0xff) << 16 | (g & 0xff) << 8 | (b & 0xff);
     }
 
     public static int jpegLS6(int n, int w, int nw) {
@@ -47,11 +46,11 @@ public class Predictors {
         byte[] wBytes = ByteBuffer.allocate(4).putInt(w).array();
         byte[] nwBytes = ByteBuffer.allocate(4).putInt(nw).array();
 
-        byte r = (byte) (wBytes[1] + (nBytes[1] - nwBytes[1]) / 2);
-        byte g = (byte) (wBytes[2] + (nBytes[2] - nwBytes[2]) / 2);
-        byte b = (byte) (wBytes[3] + (nBytes[3] - nwBytes[3]) / 2);
+        int r = ((int) wBytes[1] & 0xff) + (((int) nBytes[1] & 0xff) - ((int) nwBytes[1] & 0xff)) / 2;
+        int g = ((int) wBytes[2] & 0xff) + (((int) nBytes[2] & 0xff) - ((int) nwBytes[2] & 0xff)) / 2;
+        int b = ((int) wBytes[3] & 0xff) + (((int) nBytes[3] & 0xff) - ((int) nwBytes[3] & 0xff)) / 2;
 
-        return 0xff << 24 | r << 16 | g << 8 | b;
+        return 0xff << 24 | (r & 0xff) << 16 | (g & 0xff) << 8 | (b & 0xff);
     }
 
     public static int jpegLS7(int n, int w, int nw) {
@@ -59,11 +58,11 @@ public class Predictors {
         byte[] nBytes = ByteBuffer.allocate(4).putInt(n).array();
         byte[] wBytes = ByteBuffer.allocate(4).putInt(w).array();
 
-        byte r = (byte) ((wBytes[1] + nBytes[1]) / 2);
-        byte g = (byte) ((wBytes[2] + nBytes[2]) / 2);
-        byte b = (byte) ((wBytes[3] + nBytes[3]) / 2);
+        int r = (((int) wBytes[1] & 0xff) + ((int) nBytes[1] & 0xff)) / 2;
+        int g = (((int) wBytes[2] & 0xff) + ((int) nBytes[2] & 0xff)) / 2;
+        int b = (((int) wBytes[3] & 0xff) + ((int) nBytes[3] & 0xff)) / 2;
 
-        return 0xff << 24 | r << 16 | g << 8 | b;
+        return 0xff << 24 | (r & 0xff) << 16 | (g & 0xff) << 8 | (b & 0xff);
     }
 
     public static int jpegLSNew(int n, int w, int nw) {
@@ -72,35 +71,35 @@ public class Predictors {
         byte[] wBytes = ByteBuffer.allocate(4).putInt(w).array();
         byte[] nwBytes = ByteBuffer.allocate(4).putInt(nw).array();
 
-        byte r;
-        byte g;
-        byte b;
+        int r;
+        int g;
+        int b;
 
-        if (nwBytes[1] >= Math.max(wBytes[1], nBytes[1])) {
-            r = (byte) Math.max(wBytes[1], nBytes[1]);
-        } else if (nwBytes[1] <= Math.min(wBytes[1], nBytes[1])) {
-            r = (byte) Math.min(wBytes[1], nBytes[1]);
+        if (((int) nwBytes[1] & 0xff) >= Math.max(((int) wBytes[1] & 0xff), ((int) nBytes[1] & 0xff))) {
+            r = Math.max(((int) wBytes[1] & 0xff), ((int) nBytes[1] & 0xff));
+        } else if (((int) nwBytes[1] & 0xff) <= Math.min(((int) wBytes[1] & 0xff), ((int) nBytes[1] & 0xff))) {
+            r = Math.min(((int) wBytes[1] & 0xff), ((int) nBytes[1] & 0xff));
         } else {
-            r = (byte) (nBytes[1] + wBytes[1] - nwBytes[1]);
+            r = ((int) nBytes[1] & 0xff) + ((int) wBytes[1] & 0xff) - ((int) nwBytes[1] & 0xff);
         }
 
-        if (nwBytes[2] >= Math.max(wBytes[2], nBytes[2])) {
-            g = (byte) Math.max(wBytes[2], nBytes[2]);
-        } else if (nwBytes[2] <= Math.min(wBytes[2], nBytes[2])) {
-            g = (byte) Math.min(wBytes[2], nBytes[2]);
+        if (((int) nwBytes[2] & 0xff) >= Math.max(((int) wBytes[2] & 0xff), ((int) nBytes[2] & 0xff))) {
+            g = Math.max(((int) wBytes[2] & 0xff), ((int) nBytes[2] & 0xff));
+        } else if (((int) nwBytes[2] & 0xff) <= Math.min(((int) wBytes[2] & 0xff), ((int) nBytes[2] & 0xff))) {
+            g = Math.min(((int) wBytes[2] & 0xff), ((int) nBytes[2] & 0xff));
         } else {
-            g = (byte) (nBytes[2] + wBytes[2] - nwBytes[2]);
+            g = ((int) nBytes[2] & 0xff) + ((int) wBytes[2] & 0xff) - ((int) nwBytes[2] & 0xff);
         }
 
-        if (nwBytes[3] >= Math.max(wBytes[3], nBytes[3])) {
-            b = (byte) Math.max(wBytes[3], nBytes[3]);
-        } else if (nwBytes[3] <= Math.min(wBytes[3], nBytes[3])) {
-            b = (byte) Math.min(wBytes[3], nBytes[3]);
+        if (((int) nwBytes[3] & 0xff) >= Math.max(((int) wBytes[3] & 0xff), ((int) nBytes[3] & 0xff))) {
+            b = Math.max(((int) wBytes[3] & 0xff), ((int) nBytes[3] & 0xff));
+        } else if (((int) nwBytes[3] & 0xff) <= Math.min(((int) wBytes[3] & 0xff), ((int) nBytes[3] & 0xff))) {
+            b = Math.min(((int) wBytes[3] & 0xff), ((int) nBytes[3] & 0xff));
         } else {
-            b = (byte) (nBytes[3] + wBytes[3] - nwBytes[3]);
+            b = ((int) nBytes[3] & 0xff) + ((int) wBytes[3] & 0xff) - ((int) nwBytes[3] & 0xff);
         }
-        
-        return 0xff << 24 | r << 16 | g << 8 | b;
+
+        return 0xff << 24 | (r & 0xff) << 16 | (g & 0xff) << 8 | (b & 0xff);
     }
 
 }

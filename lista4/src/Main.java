@@ -481,11 +481,21 @@ public class Main {
             byte[] original = ByteBuffer.allocate(4).putInt(pixels[i]).array();
             byte[] predicted = ByteBuffer.allocate(4).putInt(predictedPixels[i]).array();
 
-            int r = (original[1] - predicted[1]) % 256;
-            int g = (original[2] - predicted[2]) % 256;
-            int b = (original[3] - predicted[3]) % 256;
+            int r = (((int) original[1] & 0xff) - ((int) predicted[1] & 0xff));
+            int g = (((int) original[2] & 0xff) - ((int) predicted[2] & 0xff));
+            int b = (((int) original[3] & 0xff) - ((int) predicted[3] & 0xff));
 
-            diffs[i] = 0xff << 24 | r << 16 | g << 8 | b;
+            if (r < 0) {
+                r += 256;
+            }
+            if (g < 0) {
+                g += 256;
+            }
+            if (b < 0) {
+                b += 256;
+            }
+
+            diffs[i] = 0xff << 24 | (r & 0xff) << 16 | (g & 0xff) << 8 | (b & 0xff);
         }
 
         return diffs;
