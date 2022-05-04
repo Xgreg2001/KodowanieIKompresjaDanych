@@ -6,7 +6,7 @@ import java.nio.ByteBuffer;
 public class Main {
     private static JLabel createTGALabel(String path) {
 
-        FileInputStream fis = null;
+        FileInputStream fis;
         byte[] buffer;
         int[] pixels;
         try {
@@ -166,7 +166,7 @@ public class Main {
         double entropyRedJpegLS7 = calculateEntropyRed(diffJpegLS7, width, height);
         double entropyRedJpegLSNew = calculateEntropyRed(diffJpegLSNew, width, height);
 
-        double entropyGreenOriginal = calculateEntropyRed(pixels, width, height);
+        double entropyGreenOriginal = calculateEntropyGreen(pixels, width, height);
         double entropyGreenJpegLS1 = calculateEntropyGreen(diffJpegLS1, width, height);
         double entropyGreenJpegLS2 = calculateEntropyGreen(diffJpegLS2, width, height);
         double entropyGreenJpegLS3 = calculateEntropyGreen(diffJpegLS3, width, height);
@@ -240,7 +240,7 @@ public class Main {
         System.out.println("Blue: " + entropyBlueJpegLSNew);
         System.out.println("--------------------------------------------------");
 
-        double bestEntropy = entropyOriginal;
+        double bestEntropy = Double.MAX_VALUE;
         double bestEntropyRed = Double.MAX_VALUE;
         double bestEntropyGreen = Double.MAX_VALUE;
         double bestEntropyBlue = Double.MAX_VALUE;
@@ -381,10 +381,10 @@ public class Main {
             bestPredictorBlue = "predykat nowego standardu";
         }
 
-        System.out.println("Najlepszy predykat: " + bestPredictor);
-        System.out.println("Najlepszy predykat Red: " + bestPredictorRed);
-        System.out.println("Najlepszy predykat Green: " + bestPredictorGreen);
-        System.out.println("Najlepszy predykat Blue: " + bestPredictorBlue);
+        System.out.println("Najlepszy predykat: " + bestPredictor + " : " + bestEntropy);
+        System.out.println("Najlepszy predykat Red: " + bestPredictorRed + " : " + bestEntropyRed);
+        System.out.println("Najlepszy predykat Green: " + bestPredictorGreen + " : " + bestEntropyGreen);
+        System.out.println("Najlepszy predykat Blue: " + bestPredictorBlue + " : " + bestEntropyBlue);
 
     }
 
@@ -394,7 +394,7 @@ public class Main {
         byte[] bytes = new byte[numberOfBytes];
         TGAWriter.writeRaw(pixels, bytes, 0, 3, TGAReader.ARGB);
 
-        for (int i = 0; i < numberOfBytes; i += 3) {
+        for (int i = 2; i < numberOfBytes; i += 3) {
             numOccurrences[bytes[i] & 0xff]++;
         }
 
@@ -416,7 +416,7 @@ public class Main {
         byte[] bytes = new byte[numberOfBytes];
         TGAWriter.writeRaw(pixels, bytes, 0, 3, TGAReader.ARGB);
 
-        for (int i = 0; i < numberOfBytes; i += 3) {
+        for (int i = 1; i < numberOfBytes; i += 3) {
             numOccurrences[bytes[i] & 0xff]++;
         }
 
@@ -438,7 +438,7 @@ public class Main {
         byte[] bytes = new byte[numberOfBytes];
         TGAWriter.writeRaw(pixels, bytes, 0, 3, TGAReader.ARGB);
 
-        for (int i = 2; i < numberOfBytes; i += 3) {
+        for (int i = 0; i < numberOfBytes; i += 3) {
             numOccurrences[bytes[i] & 0xff]++;
         }
 
@@ -484,16 +484,6 @@ public class Main {
             int r = (((int) original[1] & 0xff) - ((int) predicted[1] & 0xff));
             int g = (((int) original[2] & 0xff) - ((int) predicted[2] & 0xff));
             int b = (((int) original[3] & 0xff) - ((int) predicted[3] & 0xff));
-
-            if (r < 0) {
-                r += 256;
-            }
-            if (g < 0) {
-                g += 256;
-            }
-            if (b < 0) {
-                b += 256;
-            }
 
             diffs[i] = 0xff << 24 | (r & 0xff) << 16 | (g & 0xff) << 8 | (b & 0xff);
         }
