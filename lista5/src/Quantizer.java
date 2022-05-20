@@ -21,7 +21,7 @@ public class Quantizer {
     }
 
     public int[] quantize(int numberOfColors, double epsilon) {
-        if (numberOfColors < 0 || numberOfColors >= 24) {
+        if (numberOfColors < 0 || numberOfColors >= 24 || Math.pow(2, numberOfColors) >= pixels.length) {
             return pixels;
         }
 
