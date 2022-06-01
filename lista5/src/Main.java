@@ -28,9 +28,21 @@ public class Main {
 
         Quantizer quantizer = new Quantizer(pixels);
 
+        int k = Integer.parseInt(args[2]);
+
+        for (int i = 0; i < k; i++) {
+            int[] output = quantizer.quantize(i, 0.001);
+            try {
+                saveTGAImage("output" + i + ".tga", output, width, height);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
         long startTime = System.currentTimeMillis();
 
-        int[] output = quantizer.quantize(Integer.parseInt(args[2]), 0.001);
+        int[] output = quantizer.quantize(k, 0.001);
+
 
         long endTime = System.currentTimeMillis();
 

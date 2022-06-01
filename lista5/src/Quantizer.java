@@ -214,15 +214,19 @@ public class Quantizer {
     private void perturbQuantifiers() {
         ArrayList<Integer> newQuantifiers = new ArrayList<>();
         for (int quantifier : quantifiers) {
-            newQuantifiers.add(perturbQuantifier(quantifier));
+            Integer newQuantfier = perturbQuantifier(quantifier);
+            while (newQuantifiers.contains(newQuantfier) | quantifiers.contains(newQuantfier)) {
+                newQuantfier = perturbQuantifier(quantifier);
+            }
+            newQuantifiers.add(newQuantfier);
         }
         quantifiers.addAll(newQuantifiers);
     }
 
     private Integer perturbQuantifier(int quantifier) {
-        int redPerturbation = random.nextInt(255);
-        int greenPerturbation = random.nextInt(255);
-        int bluePerturbation = random.nextInt(255);
+        int redPerturbation = random.nextInt(20) + 5;
+        int greenPerturbation = random.nextInt(20) + 5;
+        int bluePerturbation = random.nextInt(20) + 5;
 
         int red = (quantifier >> 16) & 0xff;
         int green = (quantifier >> 8) & 0xff;
