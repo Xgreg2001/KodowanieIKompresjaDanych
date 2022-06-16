@@ -17,7 +17,7 @@ public class DifferentialEncoding {
             int difference_green = ((original_green - previous_decoded_green) & 0xff);
             int difference_blue = ((original_blue - previous_decoded_blue) & 0xff);
 
-            int quantified_difference_red = (q.quantify(difference_red));
+            int quantified_difference_red = (q.quantify(difference_red) & 0xff);
             int quantified_difference_green = (q.quantify(difference_green) & 0xff);
             int quantified_difference_blue = (q.quantify(difference_blue) & 0xff);
 

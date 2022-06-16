@@ -22,7 +22,7 @@ public class Quantifier {
             int nearest_j = 0;
             int lowest_dist = Integer.MAX_VALUE;
             for (int j = 0; j < 256; j += jump) {
-                int dist = Math.abs(j - i);
+                int dist = (i - j) & 0xff;
                 if (dist < lowest_dist) {
                     lowest_dist = dist;
                     nearest_j = j;
@@ -36,16 +36,6 @@ public class Quantifier {
         System.out.println(quantifiersIndexes.size());
         return map;
     }
-
-//    private HashMap<Integer, Integer> constructQuantifiers(int k) {
-//        HashMap<Integer, Integer> map = new HashMap<>();
-//        for (int i = 0; i < 256; i++) {
-//            map.put(i, i);
-//            quantifiersIndexes.add(i);
-//        }
-//
-//        return map;
-//    }
 
 //    private HashMap<Integer, Integer> constructQuantifiers(int k) {
 //        HashMap<Integer, Integer> map = new HashMap<>();
@@ -65,6 +55,34 @@ public class Quantifier {
 //            map.put(i, x);
 //            if (!quantifiersIndexes.contains(x)) {
 //                quantifiersIndexes.add(x);
+//            }
+//        }
+//        System.out.println(quantifiersIndexes.size());
+//        return map;
+//    }
+
+//    private HashMap<Integer, Integer> constructQuantifiers(int k) {
+//        HashMap<Integer, Integer> map = new HashMap<>();
+//        for (int i = 0; i < 256; i++) {
+//            int nearest_j = 0;
+//            int lowest_dist = Integer.MAX_VALUE;
+//            for (int j = 0; j < Math.pow(2, k - 1); j++) {
+//                int dist = (i - j) & 0xff;
+//                if (dist < lowest_dist) {
+//                    lowest_dist = dist;
+//                    nearest_j = j;
+//                }
+//            }
+//            for (int j = 0; j < Math.pow(2, k - 1); j++) {
+//                int dist = (i - (255 - j)) & 0xff;
+//                if (dist < lowest_dist) {
+//                    lowest_dist = dist;
+//                    nearest_j = (255 - j);
+//                }
+//            }
+//            map.put(i, nearest_j);
+//            if (!quantifiersIndexes.contains(nearest_j)) {
+//                quantifiersIndexes.add(nearest_j);
 //            }
 //        }
 //        System.out.println(quantifiersIndexes.size());
@@ -92,9 +110,9 @@ public class Quantifier {
             int original_blue = ((values[i]) & 0xff);
 
             result[i] = 0xff << 24 |
-                    (quantify(original_red)) << 16 |
-                    (quantify(original_green)) << 8 |
-                    (quantify(original_blue));
+                    (quantify(original_red) & 0xff) << 16 |
+                    (quantify(original_green) & 0xff) << 8 |
+                    (quantify(original_blue) & 0xff);
         }
         return result;
     }
